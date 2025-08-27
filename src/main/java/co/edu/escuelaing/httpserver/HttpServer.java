@@ -1,6 +1,7 @@
 package co.edu.escuelaing.httpserver;
 
 import co.edu.escuelaing.microspringboot.annotations.GetMapping;
+import co.edu.escuelaing.microspringboot.annotations.RequestParam;
 import co.edu.escuelaing.microspringboot.annotations.RestController;
 import java.net.*;
 import java.io.*;
@@ -96,22 +97,28 @@ public class HttpServer {
         serverSocket.close();
     }
 
+    @SuppressWarnings("empty-statement")
     private static String invokeService(URI requri) {
-                   String header = "HTTP/1.1 200 OK\n\r"
-                    + "content-type: text/html\n\r"
-                    + "\n\r";
+        String header = "HTTP/1.1 200 OK\n\r"
+                + "content-type: text/html\n\r"
+                + "\n\r";
         try {
             HttpRequest req = new HttpRequest(requri);
             HttpResponse res = new HttpResponse();
             String servicePath = requri.getPath().substring(4);
             Method m = services.get(servicePath);
+            String[] argsValues = null;
+            RequestParam rp = (RequestParam) m.getParameterAnnotations()[0][0];
+            if (requri.getQuery() == null) {
+                argsValues = new String[]{rp.defaultValue()};
+            } else {
+                String queryParamName = rp.value();
+                argsValues = String[]{"jorge"};
+            }
 
- 
+            return header + m.invoke(null, argsValues);
 
-            return header + m.invoke(null);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(HttpServer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             Logger.getLogger(HttpServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         return header + "Error";
